@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>stef</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <main id="login" class="login">
+    <h1>stef</h1>
+    <form id="login-form">
+      <label for="password">Senha da sala</label>
+      <input id="password" type="password" minlength="8" required autocomplete="current-password" autofocus>
+      <button type="submit">Entrar</button>
+    </form>
+    <p id="login-error" class="error" role="alert"></p>
+    <p class="hint">Vocês dois digitam a mesma senha. Use fone de ouvido para evitar eco.</p>
+  </main>
+
+  <main id="room" class="room" hidden>
+    <p id="status" class="status" role="status"></p>
+
+    <div id="stage" class="stage">
+      <video id="screen-video" class="screen" autoplay playsinline hidden></video>
+      <p id="placeholder" class="placeholder">Ninguém está compartilhando a tela.</p>
+      <div class="cams">
+        <video id="remote-cam" class="cam" autoplay playsinline hidden></video>
+        <video id="local-cam" class="cam cam--self" autoplay playsinline muted></video>
+      </div>
+    </div>
+
+    <nav class="controls" aria-label="Controles">
+      <button id="btn-mic" type="button" aria-pressed="true">Microfone</button>
+      <button id="btn-cam" type="button" aria-pressed="true">Câmera</button>
+      <button id="btn-share" type="button" aria-pressed="false">Compartilhar tela</button>
+      <button id="btn-fullscreen" type="button">Tela cheia</button>
+      <button id="btn-leave" type="button" class="danger">Sair</button>
+    </nav>
+  </main>
+</body>
+</html>

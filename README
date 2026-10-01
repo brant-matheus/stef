@@ -1,0 +1,39 @@
+stef — assistir filme a dois
+============================
+
+Site para duas pessoas: compartilhamento de tela com áudio, câmera e microfone,
+protegido por senha. Vídeo e áudio vão direto de um navegador para o outro
+(WebRTC). O servidor público do PeerJS (0.peerjs.com) só serve para os dois se
+encontrarem; o filme não passa por ele.
+
+Como usar
+---------
+1. Os dois abrem o link e digitam a MESMA senha (mínimo 8 caracteres; use uma longa).
+2. Quem entrar primeiro espera; o segundo conecta automaticamente.
+3. Quem tem o filme clica em "Compartilhar tela".
+   - Use Chrome ou Edge e marque "Compartilhar áudio" no seletor
+     (Firefox não envia o som do sistema).
+   - Se o filme estiver numa aba do navegador, compartilhe a ABA: o áudio fica mais limpo.
+4. Usem fone de ouvido, senão o microfone capta o filme e gera eco.
+
+Uma terceira pessoa com a mesma senha recebe "Sala cheia".
+A senha nunca sai do navegador: só um hash dela vira o nome da sala.
+
+Rodar localmente
+----------------
+    npx serve .
+
+Abra http://localhost:3000 numa janela normal e numa anônima com a mesma senha.
+
+Publicar na Vercel (grátis)
+---------------------------
+    npx vercel          (na primeira vez: login e configuração; aceite os padrões)
+    npx vercel --prod   (publica no link definitivo)
+
+Não precisa de build: é um site estático (index.html, style.css, app.js).
+
+Se não conectar
+---------------
+Algumas redes (4G de certas operadoras, redes corporativas) bloqueiam a conexão
+direta. Nesse caso é preciso um servidor TURN: crie uma conta grátis em um
+provedor (ex.: Metered) e adicione o servidor em ICE_SERVERS, no topo de app.js.
