@@ -16,6 +16,7 @@ const ui = {
   loginError: $('login-error'),
   room: $('room'),
   status: $('status'),
+  roomCode: $('room-code'),
   stage: $('stage'),
   screen: $('screen-video'),
   placeholder: $('placeholder'),
@@ -32,7 +33,8 @@ let roomId = null;
 let peer = null;
 let partner = null; // DataConnection com a outra pessoa
 let localStream = null;
-let screenStream = null;
+let screenStream = null; // a tela que eu compartilho
+let remoteScreen = null; // a tela que a outra pessoa compartilha
 let outgoingScreen = null;
 let retryTimer = null;
 
@@ -53,6 +55,8 @@ ui.form.addEventListener('submit', async (event) => {
   }
   roomId = await hashRoomId(ui.password.value);
   ui.password.value = '';
+  // Os dois devem ver o mesmo código; se for diferente, as senhas não batem.
+  ui.roomCode.textContent = roomId.slice(5, 9).toUpperCase();
   ui.localCam.srcObject = localStream;
   ui.cam.disabled = localStream.getVideoTracks().length === 0;
   ui.cam.setAttribute('aria-pressed', String(!ui.cam.disabled));
@@ -74,7 +78,8 @@ function leave(message = '') {
   peer = null;
   localStream?.getTracks().forEach((t) => t.stop());
   localStream = null;
-  clearRemoteScreen();
+  remoteScreen = null;
+  renderStage();
   ui.remoteCam.srcObject = null;
   ui.remoteCam.hidden = true;
   ui.room.hidden = true;
@@ -211,7 +216,8 @@ function onPartnerLeft(isHost) {
   partner = null;
   outgoingScreen?.close();
   outgoingScreen = null;
-  clearRemoteScreen();
+  remoteScreen = null;
+  renderStage();
   ui.remoteCam.srcObject = null;
   ui.remoteCam.hidden = true;
   if (isHost) {
@@ -224,7 +230,10 @@ function onPartnerLeft(isHost) {
 
 function onMessage(msg) {
   if (msg?.type === 'full') leave('Sala cheia: já tem duas pessoas nesta sala.');
-  if (msg?.type === 'screen-stop') clearRemoteScreen();
+  if (msg?.type === 'screen-stop') {
+    remoteScreen = null;
+    renderStage();
+  }
 }
 
 // ---------- Chamadas de mídia ----------
@@ -239,12 +248,13 @@ function onIncomingCall(call) {
   if (call.metadata?.kind === 'screen') {
     call.answer(undefined, { sdpTransform: stereoOpus });
     call.on('stream', (stream) => {
-      ui.screen.srcObject = stream;
-      ui.screen.hidden = false;
-      ui.placeholder.hidden = true;
+      remoteScreen = stream;
+      renderStage();
     });
     call.on('close', () => {
-      if (ui.screen.srcObject === call.remoteStream) clearRemoteScreen();
+      if (remoteScreen !== call.remoteStream) return;
+      remoteScreen = null;
+      renderStage();
     });
   } else {
     call.answer(localStream);
@@ -259,13 +269,13 @@ function showRemoteCam(call) {
   });
 }
 
-function clearRemoteScreen() {
-  ui.screen.srcObject = null;
-  ui.screen.hidden = true;
-  ui.placeholder.hidden = false;
-  ui.placeholder.textContent = screenStream
-    ? 'Você está compartilhando a tela.'
-    : 'Ninguém está compartilhando a tela.';
+// Quem compartilha vê no palco a mesma imagem que a outra pessoa recebe.
+function renderStage() {
+  const stream = remoteScreen ?? screenStream;
+  if (ui.screen.srcObject !== stream) ui.screen.srcObject = stream;
+  ui.screen.muted = !remoteScreen; // na própria tela o som já sai da aba original
+  ui.screen.hidden = !stream;
+  ui.placeholder.hidden = Boolean(stream);
 }
 
 // ---------- Compartilhar tela ----------
@@ -293,7 +303,7 @@ ui.share.addEventListener('click', async () => {
   video.addEventListener('ended', stopShare);
   ui.share.setAttribute('aria-pressed', 'true');
   ui.share.textContent = 'Parar de compartilhar';
-  if (!ui.screen.srcObject) clearRemoteScreen(); // atualiza o aviso
+  renderStage();
   if (screenStream.getAudioTracks().length === 0) {
     setStatus('Compartilhando sem áudio. Para ter som, marque "Compartilhar áudio" (Chrome/Edge).');
   }
@@ -319,7 +329,7 @@ function stopShare() {
   if (partner?.open) partner.send({ type: 'screen-stop' });
   ui.share.setAttribute('aria-pressed', 'false');
   ui.share.textContent = 'Compartilhar tela';
-  if (!ui.screen.srcObject) clearRemoteScreen();
+  renderStage();
 }
 
 // Áudio do filme em estéreo e com mais qualidade (o padrão do WebRTC é voz mono).

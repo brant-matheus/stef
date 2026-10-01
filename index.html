@@ -13,7 +13,8 @@
     <h1>stef</h1>
     <form id="login-form">
       <label for="password">Senha da sala</label>
-      <input id="password" type="password" minlength="8" required autocomplete="current-password" autofocus>
+      <input id="password" type="password" minlength="8" required autocomplete="current-password"
+             autocapitalize="off" autocorrect="off" spellcheck="false" autofocus>
       <button type="submit">Entrar</button>
     </form>
     <p id="login-error" class="error" role="alert"></p>
@@ -21,7 +22,10 @@
   </main>
 
   <main id="room" class="room" hidden>
-    <p id="status" class="status" role="status"></p>
+    <header class="status">
+      <span id="status" role="status"></span>
+      <span>Código da sala: <strong id="room-code"></strong></span>
+    </header>
 
     <div id="stage" class="stage">
       <video id="screen-video" class="screen" autoplay playsinline hidden></video>
